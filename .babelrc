@@ -1,0 +1,25 @@
+{
+  "presets": ["next/babel"],
+  "plugins": [
+    [
+      "import",
+      {
+        "libraryName": "antd"
+      }
+    ],
+    "react-native-paper/babel",
+    [
+      "module-resolver",
+      {
+        "alias": {
+          "react-native": "react-native-web"
+        }
+      }
+    ]
+  ],
+  "env": {
+    "test": {
+      "presets": [["env", { "modules": "commonjs" }], "next/babel"]
+    }
+  }
+}
