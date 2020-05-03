@@ -126,6 +126,7 @@ export function SelectPlaces({
     )
 
     if (place && place.place_id && onChange && !simpleValue && !removing) {
+      setValue(null)
       onChange(null)
       if (!placesService.current) {
         placesService.current = new window.google.maps.places.PlacesService(

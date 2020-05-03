@@ -11,8 +11,9 @@ import { CustomHead } from '../components/CustomHead'
 import { Logo } from '../components/Logo'
 import { useWindowDimensions } from '../lib/useWindowDimensions'
 import { SelectPlaces } from '../components/SelectPlaces'
-import { Button, Modal } from 'antd'
-import { useState, useCallback } from 'react'
+import { Button, Modal, Timeline, Form } from 'antd'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import Feather from 'react-native-vector-icons/Feather'
 
 const year = new Date().getFullYear()
 
@@ -45,11 +46,16 @@ export default function Index() {
 
   const openModal = useCallback(() => {
     setModalVisible(true)
-  })
+  }, [])
 
   const closeModal = useCallback(() => {
     setModalVisible(false)
-  })
+  }, [])
+
+  const clearState = useCallback(() => {
+    setDeliveryLocation(null)
+    setPickupLocation(null)
+  }, [])
 
   return (
     <>
@@ -64,7 +70,7 @@ export default function Index() {
             }}
           >
             <Image
-              source={require('../assets/petal.svg')}
+              source={require('../assets/petal_outline.svg')}
               style={{
                 width: 200,
                 height: 200,
@@ -95,7 +101,16 @@ export default function Index() {
 
                 <View style={{ flex: 1 }} />
 
-                <BigScreenOnly>
+                <Text
+                  accessibilityRole="link"
+                  href="tel://+2348125583089"
+                  style={styles.navLink}
+                >
+                  <Feather name="phone" size={30} color={ACCENT} />
+                  +234 812 558 3089
+                </Text>
+
+                {/* <BigScreenOnly>
                   <Text accessibilityRole="link" style={styles.navLink}>
                     Service
                   </Text>
@@ -105,7 +120,7 @@ export default function Index() {
                   <Text accessibilityRole="link" style={styles.navLink}>
                     About Us
                   </Text>
-                </BigScreenOnly>
+                </BigScreenOnly> */}
               </View>
 
               <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
@@ -167,10 +182,10 @@ export default function Index() {
                     <Button
                       size="large"
                       onClick={openModal}
-                      //   disabled={!pickupLocation || !deliveryLocation}
+                      disabled={!pickupLocation || !deliveryLocation}
                       style={{ margin: 10, width: 150 }}
                     >
-                      Make Request
+                      Continue
                     </Button>
                   </View>
                 </View>
@@ -238,9 +253,89 @@ export default function Index() {
         visible={modalVisible}
         onCancel={closeModal}
       >
-        <View style={{ padding: 20 }}></View>
+        <RequestForm
+          pickupLocation={pickupLocation}
+          deliveryLocation={deliveryLocation}
+          onFinish={clearState}
+        />
       </Modal>
     </>
+  )
+}
+
+function RequestForm({ pickupLocation, deliveryLocation, onFinish }) {
+  const placesService = useRef()
+  const [distance, setDistance] = useState()
+  const [time, setTime] = useState()
+  const price = useMemo(() => {
+    return (Number(time?.value) * 0.05 + Number(distance?.value) * 0.15) | 0
+  }, [time, distance])
+
+  useEffect(() => {
+    if (!placesService.current) {
+      placesService.current = new window.google.maps.DistanceMatrixService()
+    }
+
+    if (!pickupLocation || !deliveryLocation) return
+
+    placesService.current.getDistanceMatrix(
+      {
+        origins: [pickupLocation?.formatted_address],
+        destinations: [deliveryLocation?.formatted_address],
+        avoidTolls: true,
+        travelMode: 'DRIVING',
+      },
+      (response, status) => {
+        setTime(response?.rows[0]?.elements[0]?.duration)
+        setDistance(response?.rows[0]?.elements[0]?.distance)
+      }
+    )
+  }, [pickupLocation, deliveryLocation])
+
+  const makeRequest = useCallback(() => {
+    if (!placesService.current) {
+      placesService.current = new window.google.maps.places.PlacesService(
+        selectPlacesNode.current
+      )
+    }
+
+    placesService.current
+  })
+
+  return (
+    <View style={{ padding: 20 }}>
+      <Timeline>
+        <Timeline.Item color="green">
+          {pickupLocation?.formatted_address}
+        </Timeline.Item>
+        <Timeline.Item color="red">
+          {deliveryLocation?.formatted_address}
+        </Timeline.Item>
+      </Timeline>
+
+      <View style={{ marginBottom: 50 }}>
+        <InfoItem label="PRICE (EST)" value={`NGN${price}`} />
+        <InfoItem label="DISTANCE (EST)" value={distance?.text} />
+        <InfoItem label="TIME (EST)" value={time?.text} />
+      </View>
+
+      <Form onFinish={makeRequest}>
+        <Button size="large" style={{ width: 150 }}>
+          Make Request
+        </Button>
+      </Form>
+    </View>
+  )
+}
+
+function InfoItem({ label, value }) {
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      <Text style={{ fontSize: 17, fontFamily: 'Livvic' }}>{label}</Text>
+
+      <View style={{ flex: 1 }} />
+      <Text style={{ fontSize: 17, fontFamily: 'Livvic' }}>{value}</Text>
+    </View>
   )
 }
 
