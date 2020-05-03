@@ -119,11 +119,14 @@ export function SelectPlaces({
     }
   }
 
-  const handleChange = (value) => {
-    const removing = multi && value && value.length > value.length
-    const place = multi ? value[value.length - 1] : value
+  const handleChange = (newValue) => {
+    const removing = multi && value && value.length > newValue.length
+    const place = options.find((o) =>
+      o.id === multi ? newValue[newValue.length - 1] : newValue
+    )
 
     if (place && place.place_id && onChange && !simpleValue && !removing) {
+      onChange(null)
       if (!placesService.current) {
         placesService.current = new window.google.maps.places.PlacesService(
           selectPlacesNode.current
@@ -132,17 +135,15 @@ export function SelectPlaces({
       placesService.current.getDetails(
         { placeId: place.place_id },
         (placeInfo) => {
-          setValue(value)
+          setValue(newValue)
           onChange(placeInfo)
         }
       )
     } else {
-      setValue(simpleValue ? value && { label: value } : value)
-      onChange && onChange(value)
+      setValue(simpleValue ? newValue && { label: newValue } : newValue)
+      onChange && onChange(newValue)
     }
   }
-
-  console.log(options)
 
   return (
     <View style={{ flex: 1 }}>

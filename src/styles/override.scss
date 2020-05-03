@@ -356,22 +356,20 @@ div[role='navigation'] > div:first-child {
 // }
 
 .ant-btn {
-  background-color: rgba(163, 168, 102, 1);
+  background-color: #8ac544;
   border-top-color: rgba(0, 0, 0, 0);
   border-right-color: rgba(0, 0, 0, 0);
   border-bottom-color: rgba(0, 0, 0, 0);
   border-left-color: rgba(0, 0, 0, 0);
-  border-top-left-radius: 25px;
-  border-top-right-radius: 25px;
-  border-bottom-right-radius: 25px;
-  border-bottom-left-radius: 25px;
   box-shadow: 0px 0.75px 1.5px rgba(0, 0, 0, 0.24);
+  color: #fff;
 
   &:hover,
   &:focus,
   &:active {
-    background-color: #777b4b;
-    border-color: #777b4b;
+    background-color: #76a73b;
+    border-color: #76a73b;
+    color: #fff;
   }
 }
 
