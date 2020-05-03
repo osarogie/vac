@@ -57,34 +57,33 @@ export default function Index() {
       <ImageBackground
         style={{ backgroundColor: '#fff', flex: 1, position: 'relative' }}
       >
-        <Image
-          source={require('../assets/green_petal.svg')}
-          style={{
-            width: 200,
-            height: 200,
-            position: 'absolute',
-            right: -50,
-            top: -50,
-          }}
-        />
-
-        <Image
-          source={require('../assets/petal.svg')}
-          style={{
-            width: 200,
-            height: 200,
-            position: 'absolute',
-            left: -50,
-            bottom: -50,
-          }}
-        />
-
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1, position: 'relative' }}>
           <View
             style={{
               position: 'relative',
             }}
           >
+            <Image
+              source={require('../assets/petal.svg')}
+              style={{
+                width: 200,
+                height: 200,
+                position: 'absolute',
+                right: -50,
+                top: -50,
+              }}
+            />
+
+            <Image
+              source={require('../assets/petal.svg')}
+              style={{
+                width: 200,
+                height: 200,
+                position: 'absolute',
+                left: -50,
+                bottom: -50,
+              }}
+            />
             <View style={[styles.top, { paddingHorizontal }]}>
               <View
                 style={{
