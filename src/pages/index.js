@@ -44,7 +44,7 @@ function FormItem({ label, style, children }) {
 }
 
 const makeOrderMutation = `
-  mutation makeOrder($input: makeOrderInput!) {
+  mutation makeOrder($input: MakeOrderInput!) {
     makeOrder(input: $input) {
       status
       message
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
     padding: 10,
     zIndex: 1000,
     position: "relative",
-    maxWidth: 600,
+    maxWidth: 800,
   },
   row: {
     flexDirection: "row",
