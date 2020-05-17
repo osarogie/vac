@@ -1,16 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { Select } from 'antd'
-import { View } from 'react-native'
+import React, { useEffect, useState, useRef } from "react"
+import { Select } from "antd"
+import { View } from "react-native"
 
 const defaultAutocompletionRequest = {
   //   types: ['(cities)'],
   componentRestrictions: {
-    country: 'NG',
+    country: "NG",
   },
 }
 
 export function SelectPlaces({
-  placeholder = 'e.g. 18 Adeola Odeku',
+  placeholder = "e.g. 18 Adeola Odeku",
   value: initialValue,
   onChange,
   multi,
@@ -28,10 +28,16 @@ export function SelectPlaces({
 
   useEffect(() => {
     mapValueToState({ value })
+  }, [])
+
+  useEffect(() => {
+    if (initialValue === null) {
+      setValue(null)
+    }
   }, [initialValue])
 
-  const mapValueToState = async (props) => {
-    const retrieveValue = async (props) => {
+  const mapValueToState = async props => {
+    const retrieveValue = async props => {
       let value
 
       if (props.value && props.value.placeId) {
@@ -46,7 +52,7 @@ export function SelectPlaces({
             placesService.current.getDetails(
               { placeId: props.value.placeId },
               (placeInfo, requestStatus) => {
-                if (requestStatus === 'OK') {
+                if (requestStatus === "OK") {
                   resolve({ label: placeInfo.formatted_address })
                 } else if (props.value.label) {
                   console.warn(
@@ -63,11 +69,11 @@ export function SelectPlaces({
             )
           })
         } catch (e) {
-          console.warn('Google Maps Places is not loaded', e)
+          console.warn("Google Maps Places is not loaded", e)
           value = props.value.label && { label: props.value.label }
         }
       } else {
-        if (typeof props.value === 'string') {
+        if (typeof props.value === "string") {
           value = { label: props.value }
         } else {
           value = props.value &&
@@ -79,7 +85,7 @@ export function SelectPlaces({
 
     if (props.multi) {
       let multiValue = []
-      props.value.forEach(async (place) => {
+      props.value.forEach(async place => {
         multiValue.push(await retrieveValue({ value: place }))
       })
       setValue(await multiValue)
@@ -88,7 +94,7 @@ export function SelectPlaces({
     }
   }
 
-  const loadOptions = (input) => {
+  const loadOptions = input => {
     if (input) {
       if (!autocompleteService.current && window.google && window.google.maps) {
         autocompleteService.current = new window.google.maps.places.AutocompleteService()
@@ -98,10 +104,10 @@ export function SelectPlaces({
         setLoading(true)
         autocompleteService.current.getPlacePredictions(
           { ...autocompletionRequest, input },
-          (predictions) => {
+          predictions => {
             let options = []
             if (predictions) {
-              options = predictions.map((prediction) => ({
+              options = predictions.map(prediction => ({
                 label: prediction.description,
                 ...prediction,
               }))
@@ -119,9 +125,9 @@ export function SelectPlaces({
     }
   }
 
-  const handleChange = (newValue) => {
+  const handleChange = newValue => {
     const removing = multi && value && value.length > newValue.length
-    const place = options.find((o) =>
+    const place = options.find(o =>
       o.id === multi ? newValue[newValue.length - 1] : newValue
     )
 
@@ -135,7 +141,7 @@ export function SelectPlaces({
       }
       placesService.current.getDetails(
         { placeId: place.place_id },
-        (placeInfo) => {
+        placeInfo => {
           setValue(newValue)
           onChange(placeInfo)
         }

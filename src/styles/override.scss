@@ -99,8 +99,8 @@ textarea {
   padding: 20px;
   border-radius: 6px;
   max-width: 1000px;
-  margin-right: auto;
-  margin-left: auto;
+  // margin-right: auto;
+  // margin-left: auto;
 }
 .ant-modal-body .ant-form {
   box-shadow: none;
@@ -269,56 +269,56 @@ div[role='navigation'] > div:first-child {
 .ant-modal-mask {
   background-color: rgba(0, 0, 0, 0.87);
 }
-@media (min-width: 576px) {
-  .ant-form {
-    width: 500px;
-  }
-}
+// @media (min-width: 576px) {
+//   .ant-form {
+//     width: 500px;
+//   }
+// }
 @media (max-width: 1000px) {
   .sider.mobile {
     display: none;
   }
 }
-@media (min-width: 1000px) {
-  /* .sider.mobile {
-    display: none;
-  } */
-  .ham-menu {
-    display: none;
-  }
+// @media (min-width: 1000px) {
+//   /* .sider.mobile {
+//     display: none;
+//   } */
+//   .ham-menu {
+//     display: none;
+//   }
 
-  // .ant-form {
-  //   width: auto;
-  //   max-width: 900px;
-  //   margin: 0 20px;
-  //   display: table;
-  // }
+//   // .ant-form {
+//   //   width: auto;
+//   //   max-width: 900px;
+//   //   margin: 0 20px;
+//   //   display: table;
+//   // }
 
-  .edit-entity-modal.ant-modal {
-    width: 850px !important;
-  }
+//   .edit-entity-modal.ant-modal {
+//     width: 850px !important;
+//   }
 
-  .ant-form-item-label {
-    width: 100%;
-    text-align: left;
-  }
+//   .ant-form-item-label {
+//     width: 100%;
+//     text-align: left;
+//   }
 
-  .ant-form-item-control-wrapper {
-    margin-left: 0;
-  }
+//   .ant-form-item-control-wrapper {
+//     margin-left: 0;
+//   }
 
-  // .ant-form-item {
-  //   width: 50%;
-  //   float: left;
-  //   &:nth-child(odd) {
-  //     display: table;
-  //   }
-  // }
+//   // .ant-form-item {
+//   //   width: 50%;
+//   //   float: left;
+//   //   &:nth-child(odd) {
+//   //     display: table;
+//   //   }
+//   // }
 
-  .ant-form-item:last-child {
-    width: 100%;
-  }
-}
+//   .ant-form-item:last-child {
+//     width: 100%;
+//   }
+// }
 .slim {
   max-width: 900px;
   margin-right: auto;

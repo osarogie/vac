@@ -1,25 +1,27 @@
-import React from 'react'
+import React, { useMemo } from "react"
 
-import { database } from '../lib/database'
-import { get } from '../lib/request'
-import { API } from '../services/ApiService'
-import { useState, useEffect } from 'react'
-import { AuthModal } from '../views/session/AuthModal'
-import Modal from 'antd/lib/modal'
-import Loading from '../components/Loading'
-import { useLocalStorage } from '../lib/storage/useStorage'
+import { database } from "../lib/database"
+import { get } from "../lib/request"
+import { API } from "../services/ApiService"
+import { useState, useEffect } from "react"
+import { AuthModal } from "../views/session/AuthModal"
+import Modal from "antd/lib/modal"
+import Loading from "../components/Loading"
+import { useLocalStorage } from "../lib/storage/useStorage"
+import { ViewerContext } from "../hooks/useViewer"
 
 let defaultViewer = null
 
 export function ViewerProvider({ expectViewer, children }) {
-  if (typeof window !== 'undefined') defaultViewer = window.__VIEWER__
+  if (typeof window !== "undefined") defaultViewer = window.__VIEWER__
 
   const [viewer, setViewer] = useState(defaultViewer)
   const hasViewer = !!viewer
   const [refetched, setRefetched] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState("")
   const [, setLoading] = useState(!!defaultViewer)
+  const value = useMemo(() => ({ expectViewer, viewer, showModal }))
 
   useEffect(() => {
     loadViewer()
@@ -27,7 +29,7 @@ export function ViewerProvider({ expectViewer, children }) {
 
   async function loadViewer() {
     const session = await database.getSessionDetails()
-    if (!session) return (location.href = '/login')
+    if (!session) return (location.href = "/login")
     const { userId, user } = session
 
     if (user) {
@@ -67,7 +69,7 @@ export function ViewerProvider({ expectViewer, children }) {
   }
 
   return (
-    <ViewerContext.Provider value={{ expectViewer, viewer, showModal }}>
+    <ViewerContext.Provider value={value}>
       <>
         {hasViewer ? children : <Loading />}
         <Modal
@@ -86,7 +88,7 @@ export function ViewerProvider({ expectViewer, children }) {
 }
 
 export function provideViewer(Component, { requiresViewer = false } = {}) {
-  return (props) => (
+  return props => (
     <ViewerProvider expectViewer={requiresViewer}>
       <Component {...props} />
     </ViewerProvider>
@@ -94,13 +96,5 @@ export function provideViewer(Component, { requiresViewer = false } = {}) {
 }
 
 export function useToken() {
-  return ''
-}
-
-export function useViewer() {
-  return useLocalStorage('user', null)
-}
-
-export function useSessionToken() {
-  return useLocalStorage('token', null)
+  return ""
 }

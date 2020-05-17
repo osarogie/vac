@@ -5,17 +5,24 @@ import {
   Image,
   ScrollView,
   ImageBackground,
-} from 'react-native'
-import { ACCENT } from '../styles/colors'
-import { CustomHead } from '../components/CustomHead'
-import { Logo } from '../components/Logo'
-import { useWindowDimensions } from '../lib/useWindowDimensions'
-import { SelectPlaces } from '../components/SelectPlaces'
-import { Button, Modal, Timeline, Form } from 'antd'
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
-import Feather from 'react-native-vector-icons/Feather'
+} from "react-native"
+import { ACCENT } from "../styles/colors"
+import { CustomHead } from "../components/CustomHead"
+import { Logo } from "../components/Logo"
+import { useWindowDimensions } from "../lib/useWindowDimensions"
+import { SelectPlaces } from "../components/SelectPlaces"
+import { Button, Modal, Timeline, Form, Input, notification } from "antd"
+import { useState, useCallback, useRef, useEffect, useMemo } from "react"
+import Feather from "react-native-vector-icons/Feather"
+import { useViewer, useLocalViewer } from "../hooks/useViewer"
+import { useForm } from "antd/lib/form/util"
 
 const year = new Date().getFullYear()
+const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT
+
+const inputRules = [{ required: true, message: "This field is required" }]
+const nameInputRules = [...inputRules]
+const phoneInputRules = [...inputRules]
 
 function BigScreenOnly({ children }) {
   const { width } = useWindowDimensions()
@@ -36,6 +43,37 @@ function FormItem({ label, style, children }) {
   )
 }
 
+const makeOrderMutation = `
+  mutation makeOrder($input: makeOrderInput!) {
+    makeOrder(input: $input) {
+      status
+      message
+      order {
+        rrn
+      }
+    }
+  }
+`
+
+async function executeQuery(query, variables) {
+  return new Promise(resolve => {
+    fetch(GRAPHQL_ENDPOINT || "https://vacoffice.herokuapp.com/graphql", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, variables }),
+    })
+      .then(response => response.json())
+      .then(resolve)
+      .catch(err => {
+        console.error(err)
+        resolve({ data: null, errors: [err] })
+      })
+  })
+}
+
 export default function Index() {
   const [pickupLocation, setPickupLocation] = useState()
   const [deliveryLocation, setDeliveryLocation] = useState()
@@ -52,40 +90,45 @@ export default function Index() {
     setModalVisible(false)
   }, [])
 
-  const clearState = useCallback(() => {
+  const onOrder = useCallback(order => {
+    notification.success({
+      message: "Great!",
+      description: "Your order was successful",
+    })
     setDeliveryLocation(null)
     setPickupLocation(null)
+    closeModal()
   }, [])
 
   return (
     <>
       <CustomHead title="VAC Logistics" />
       <ImageBackground
-        style={{ backgroundColor: '#fff', flex: 1, position: 'relative' }}
+        style={{ backgroundColor: "#fff", flex: 1, position: "relative" }}
       >
-        <ScrollView style={{ flex: 1, position: 'relative' }}>
+        <ScrollView style={{ flex: 1, position: "relative" }}>
           <View
             style={{
-              position: 'relative',
+              position: "relative",
             }}
           >
             <Image
-              source={require('../assets/petal_outline.svg')}
+              source={require("../assets/petal_outline.svg")}
               style={{
                 width: 200,
                 height: 200,
-                position: 'absolute',
+                position: "absolute",
                 right: -50,
                 top: -50,
               }}
             />
 
             <Image
-              source={require('../assets/petal.svg')}
+              source={require("../assets/petal.svg")}
               style={{
                 width: 200,
                 height: 200,
-                position: 'absolute',
+                position: "absolute",
                 left: -50,
                 bottom: -50,
               }}
@@ -93,11 +136,11 @@ export default function Index() {
             <View style={[styles.top, { paddingHorizontal }]}>
               <View
                 style={{
-                  flexDirection: 'row',
+                  flexDirection: "row",
                   marginBottom: 50,
                 }}
               >
-                <Logo size={150} />
+                <Logo size={100} />
 
                 <View style={{ flex: 1 }} />
 
@@ -106,7 +149,7 @@ export default function Index() {
                   href="tel://+2348125583089"
                   style={styles.navLink}
                 >
-                  <Feather name="phone" size={30} color={ACCENT} />
+                  <Feather name="phone" size={20} color={ACCENT} />
                   +234 812 558 3089
                 </Text>
 
@@ -123,14 +166,14 @@ export default function Index() {
                 </BigScreenOnly> */}
               </View>
 
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                 <View style={{ flex: 3 }}>
                   <Text
                     style={{
                       fontSize: 67 * 0.7,
                       color: ACCENT,
-                      fontFamily: 'Livvic',
-                      fontWeight: 'bold',
+                      fontFamily: "Livvic",
+                      fontWeight: "bold",
                     }}
                   >
                     Delivery Services
@@ -138,7 +181,7 @@ export default function Index() {
                   <Text
                     style={{
                       fontSize: 27 * 0.7,
-                      color: '#927d8a',
+                      color: "#927d8a",
                     }}
                   >
                     We are committed to handling your deliveries with
@@ -161,20 +204,24 @@ export default function Index() {
                   }}
                 />
               </View> */}
-                  <View style={styles.locationInputCOntainer}>
+                  <View style={styles.locationInputContainer}>
                     <View style={styles.row}>
                       <FormItem
                         label="Pickup From"
-                        style={{ flex: 1, minWidth: 200, margin: 10 }}
+                        style={{ flex: 1, minWidth: 250, margin: 10 }}
                       >
-                        <SelectPlaces onChange={setPickupLocation} />
+                        <SelectPlaces
+                          onChange={setPickupLocation}
+                          value={pickupLocation}
+                        />
                       </FormItem>
                       <FormItem
                         label="Deliver To"
-                        style={{ flex: 1, minWidth: 200, margin: 10 }}
+                        style={{ flex: 1, minWidth: 250, margin: 10 }}
                       >
                         <SelectPlaces
                           onChange={setDeliveryLocation}
+                          value={deliveryLocation}
                           placeholder="e.g. 47 Coker Road"
                         />
                       </FormItem>
@@ -190,10 +237,10 @@ export default function Index() {
                   </View>
                 </View>
                 <View
-                  style={{ marginTop: -60, position: 'relative', zIndex: -1 }}
+                  style={{ marginTop: -60, position: "relative", zIndex: -1 }}
                 >
                   <Image
-                    source={require('../assets/clouds.svg')}
+                    source={require("../assets/clouds.svg")}
                     style={{
                       height: 300,
                       width: 300,
@@ -205,10 +252,10 @@ export default function Index() {
                     style={{
                       flex: 4,
                       minWidth: 400,
-                      position: 'relative',
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      flexWrap: 'wrap',
+                      position: "relative",
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      flexWrap: "wrap",
                     }}
                   >
                     {/* <Image
@@ -236,8 +283,8 @@ export default function Index() {
             <View
               style={{
                 padding: 20,
-                alignSelf: 'flex-end',
-                fontFamily: 'Livvic',
+                alignSelf: "flex-end",
+                fontFamily: "Livvic",
                 opacity: 0.6,
               }}
             >
@@ -256,7 +303,7 @@ export default function Index() {
         <RequestForm
           pickupLocation={pickupLocation}
           deliveryLocation={deliveryLocation}
-          onFinish={clearState}
+          onFinish={onOrder}
         />
       </Modal>
     </>
@@ -264,26 +311,35 @@ export default function Index() {
 }
 
 function RequestForm({ pickupLocation, deliveryLocation, onFinish }) {
+  const { viewer } = useViewer()
+  const [localViewer, setLocalViewer] = useLocalViewer()
+  const [form] = useForm()
+
+  const defaultSenderName = viewer?.fullName || localViewer?.fullName
+  const defaultSenderPhone = viewer?.phoneNumber || localViewer?.phoneNumber
+
   const placesService = useRef()
   const [distance, setDistance] = useState()
+  const [processing, setProcessing] = useState(false)
   const [time, setTime] = useState()
-  const price = useMemo(() => {
-    return (Number(time?.value) * 0.05 + Number(distance?.value) * 0.15) | 0
+  const amount = useMemo(() => {
+    const value = time?.value * 0.05 + distance?.value * 0.1
+    return Math.max(100 * Math.ceil(value / 100), 500)
   }, [time, distance])
 
   useEffect(() => {
+    if (!window.google?.maps || !pickupLocation || !deliveryLocation) return
+
     if (!placesService.current) {
       placesService.current = new window.google.maps.DistanceMatrixService()
     }
-
-    if (!pickupLocation || !deliveryLocation) return
 
     placesService.current.getDistanceMatrix(
       {
         origins: [pickupLocation?.formatted_address],
         destinations: [deliveryLocation?.formatted_address],
         avoidTolls: true,
-        travelMode: 'DRIVING',
+        travelMode: "DRIVING",
       },
       (response, status) => {
         setTime(response?.rows[0]?.elements[0]?.duration)
@@ -292,15 +348,55 @@ function RequestForm({ pickupLocation, deliveryLocation, onFinish }) {
     )
   }, [pickupLocation, deliveryLocation])
 
-  const makeRequest = useCallback(() => {
-    if (!placesService.current) {
-      placesService.current = new window.google.maps.places.PlacesService(
-        selectPlacesNode.current
-      )
-    }
+  const makeRequest = useCallback(
+    async ({
+      name,
+      senderPhone,
+      recipientPhone,
+      recipientName,
+      senderName,
+    }) => {
+      const variables = {
+        input: {
+          name,
+          senderPhone,
+          recipientPhone,
+          recipientName,
+          senderName,
+          amount,
+          pickupAddress: pickupLocation?.formatted_address,
+          deliveryAddress: deliveryLocation?.formatted_address,
+        },
+      }
 
-    placesService.current
-  })
+      setProcessing(true)
+      const { data, errors } = await executeQuery(makeOrderMutation, variables)
+      setProcessing(false)
+
+      if (data?.makeOrder?.status) {
+        onFinish(data?.makeOrder?.order)
+      } else if (data?.makeOrder?.message) {
+        notification.error({
+          key: "API",
+          message: "Oops",
+          description: data?.makeOrder?.message,
+        })
+      } else if (errors) {
+        for (const error of errors) {
+          notification.error({
+            message: "Oops",
+            description: error?.message,
+          })
+        }
+      }
+
+      setLocalViewer({
+        fullName: senderName,
+        phoneNumber: senderPhone,
+      })
+    },
+    [pickupLocation, deliveryLocation, onFinish, amount]
+  )
 
   return (
     <View style={{ padding: 20 }}>
@@ -313,14 +409,81 @@ function RequestForm({ pickupLocation, deliveryLocation, onFinish }) {
         </Timeline.Item>
       </Timeline>
 
-      <View style={{ marginBottom: 50 }}>
-        <InfoItem label="PRICE (EST)" value={`NGN${price}`} />
+      <View style={{ marginBottom: 20 }}>
+        <InfoItem label="PRICE (EST)" value={`NGN${amount}`} />
         <InfoItem label="DISTANCE (EST)" value={distance?.text} />
         <InfoItem label="TIME (EST)" value={time?.text} />
       </View>
 
-      <Form onFinish={makeRequest}>
-        <Button size="large" style={{ width: 150 }}>
+      <Form
+        name="order-form"
+        size="large"
+        layout="vertical"
+        onFinish={makeRequest}
+        form={form}
+        initialValues={{
+          senderPhone: defaultSenderPhone,
+          senderName: defaultSenderName,
+        }}
+      >
+        <Form.Item
+          name="name"
+          label="What you want delivered"
+          rules={inputRules}
+        >
+          <Input placeholder="e.g. A bag" />
+        </Form.Item>
+
+        <View style={styles.inputGroup}>
+          <View style={styles.inputCont}>
+            <Form.Item
+              name="senderName"
+              label="Your name"
+              rules={nameInputRules}
+            >
+              <Input />
+            </Form.Item>
+          </View>
+
+          <View style={styles.inputCont}>
+            <Form.Item
+              name="senderPhone"
+              label="Your phone number"
+              rules={phoneInputRules}
+            >
+              <Input placeholder="e.g. 08123456789" />
+            </Form.Item>
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <View style={styles.inputCont}>
+            <Form.Item
+              name="recipientName"
+              label="Recipients name"
+              rules={nameInputRules}
+            >
+              <Input />
+            </Form.Item>
+          </View>
+
+          <View style={styles.inputCont}>
+            <Form.Item
+              name="recipientPhone"
+              label="Recipients phone number"
+              rules={phoneInputRules}
+            >
+              <Input placeholder="e.g. 08123456789" />
+            </Form.Item>
+          </View>
+        </View>
+
+        <Button
+          disabled={processing || !amount}
+          loading={processing}
+          style={{ width: 150 }}
+          htmlType="submit"
+        >
           Make Request
         </Button>
       </Form>
@@ -330,11 +493,11 @@ function RequestForm({ pickupLocation, deliveryLocation, onFinish }) {
 
 function InfoItem({ label, value }) {
   return (
-    <View style={{ flexDirection: 'row' }}>
-      <Text style={{ fontSize: 17, fontFamily: 'Livvic' }}>{label}</Text>
+    <View style={{ flexDirection: "row" }}>
+      <Text style={{ fontSize: 17, fontFamily: "Livvic" }}>{label}</Text>
 
       <View style={{ flex: 1 }} />
-      <Text style={{ fontSize: 17, fontFamily: 'Livvic' }}>{value}</Text>
+      <Text style={{ fontSize: 17, fontFamily: "Livvic" }}>{value}</Text>
     </View>
   )
 }
@@ -343,27 +506,34 @@ const styles = StyleSheet.create({
   top: {
     paddingVertical: 30,
     paddingHorizontal: 50,
-    position: 'relative',
+    position: "relative",
   },
   navLink: {
     color: ACCENT,
     marginEnd: 30,
-    fontSize: 27,
-    fontWeight: '500',
-    textShadow: '1px 1px 0px #fff',
+    fontSize: 20,
+    fontWeight: "500",
+    textShadow: "1px 1px 0px #fff",
   },
-  locationInputCOntainer: {
+  locationInputContainer: {
     marginTop: 40,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 6,
-    boxShadow: 'rgb(224, 201, 216) 1px 2px 8px -2px',
+    boxShadow: "rgb(224, 201, 216) 1px 2px 8px -2px",
     padding: 10,
     zIndex: 1000,
-    position: 'relative',
+    position: "relative",
     maxWidth: 600,
   },
   row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  inputCont: { flex: 1, minWidth: 150, marginHorizontal: 10 },
+  inputGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginHorizontal: -10,
   },
 })
