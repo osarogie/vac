@@ -125,13 +125,12 @@ export function SelectPlaces({
     }
   }
 
-  const handleChange = newValue => {
+  const handleChange = index => {
+    const newValue = options[index]
     const removing = multi && value && value.length > newValue.length
-    const place = options.find(o =>
-      o.id === multi ? newValue[newValue.length - 1] : newValue
-    )
+    const place = multi ? newValue[newValue.length - 1] : newValue
 
-    if (place && place.place_id && onChange && !simpleValue && !removing) {
+    if (place?.place_id && onChange && !simpleValue && !removing) {
       setValue(null)
       onChange(null)
       if (!placesService.current) {
@@ -158,7 +157,7 @@ export function SelectPlaces({
         size="large"
         showSearch
         loading={loading}
-        value={value}
+        value={value?.label}
         placeholder={placeholder}
         style={style}
         defaultActiveFirstOption={false}
@@ -168,8 +167,10 @@ export function SelectPlaces({
         onChange={handleChange}
         notFoundContent={null}
       >
-        {options.map(({ id, label }) => (
-          <Select.Option key={id}>{label}</Select.Option>
+        {options.map(({ place_id, label }, i) => (
+          <Select.Option key={place_id} value={i}>
+            {label}
+          </Select.Option>
         ))}
       </Select>
       <div ref={selectPlacesNode} />
